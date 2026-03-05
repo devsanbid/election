@@ -2,11 +2,12 @@
 
 import { useLanguage } from "@/lib/LanguageContext";
 import { formatNumber, getPartyColor } from "@/lib/dataUtils";
+import { translateEntity } from "@/lib/entityMappings";
 
 const SYMBOL_BASE = "/api/symbol";
 
 export default function PartyCard({ party, totalVotes, rank }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const color = getPartyColor(party.name);
   const voteShare =
     totalVotes > 0 ? ((party.totalVotes / totalVotes) * 100).toFixed(1) : "0.0";
@@ -43,8 +44,8 @@ export default function PartyCard({ party, totalVotes, rank }) {
           ></div>
         )}
         <div className="party-info">
-          <h3 className="party-name">{party.name}</h3>
-          <span className="party-symbol-text">{party.symbolName}</span>
+          <h3 className="party-name">{translateEntity(party.name, "party", lang)}</h3>
+          <span className="party-symbol-text">{lang === "en" ? translateEntity(party.symbolName, "party", lang) : party.symbolName}</span>
         </div>
       </div>
       <div className="party-stats">

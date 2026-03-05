@@ -1,9 +1,10 @@
 "use client";
 
 import { useLanguage } from "@/lib/LanguageContext";
+import { translateEntity } from "@/lib/entityMappings";
 
 export default function ProvinceFilter({ provinces, selected, onSelect }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   return (
     <div className="province-filter">
@@ -19,7 +20,7 @@ export default function ProvinceFilter({ provinces, selected, onSelect }) {
           className={`filter-btn ${selected === p ? "active" : ""}`}
           onClick={() => onSelect(p)}
         >
-          {p}
+          {translateEntity(p, "province", lang)}
         </button>
       ))}
     </div>

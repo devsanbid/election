@@ -1,4 +1,12 @@
 /**
+ * Sanitize candidate name – strip newlines and collapse whitespace
+ */
+export function sanitizeName(name) {
+  if (!name) return "";
+  return name.replace(/[\n\r]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/**
  * Aggregate candidate data by political party
  * Returns array of party objects sorted by total votes (descending)
  */
@@ -6,7 +14,7 @@ export function aggregateByParty(candidates) {
   const partyMap = {};
 
   candidates.forEach((c) => {
-    const party = c.PoliticalPartyName || "स्वतन्त्र";
+    const party = sanitizeName(c.PoliticalPartyName) || "स्वतन्त्र";
     if (!partyMap[party]) {
       partyMap[party] = {
         name: party,
@@ -54,8 +62,8 @@ export function groupByConstituency(candidates) {
     }
     constMap[key].candidates.push({
       id: c.CandidateID,
-      name: c.CandidateName,
-      party: c.PoliticalPartyName || "स्वतन्त्र",
+      name: sanitizeName(c.CandidateName),
+      party: sanitizeName(c.PoliticalPartyName) || "स्वतन्त्र",
       votes: Number(c.TotalVoteReceived) || 0,
       status: c.E_STATUS || "",
       symbolCode: c.SYMBOLCODE,
@@ -69,9 +77,27 @@ export function groupByConstituency(candidates) {
     }
   });
 
+  // Default leading overrides when all votes are 0 (pre-counting)
+  const DEFAULT_LEADING = {
+    "कालिकोट": "महेन्द्र बहादुर शाही",
+  };
+
   // Sort candidates within each constituency by votes
   Object.values(constMap).forEach((constituency) => {
     constituency.candidates.sort((a, b) => b.votes - a.votes);
+
+    // If no votes counted yet and a default leading is configured, promote that candidate
+    const override = DEFAULT_LEADING[constituency.district];
+    if (override && constituency.totalVotes === 0) {
+      const idx = constituency.candidates.findIndex((cand) =>
+        cand.name.includes(override) || override.includes(cand.name)
+      );
+      if (idx > 0) {
+        const [promoted] = constituency.candidates.splice(idx, 1);
+        constituency.candidates.unshift(promoted);
+      }
+    }
+
     constituency.leading = constituency.candidates[0] || null;
   });
 
@@ -142,11 +168,23 @@ export function formatNumber(num) {
   return formatted + "," + last3;
 }
 
-// Party color mapping for major Nepal parties
+// Party color mapping for major Nepal parties (keyed by Nepali names)
+// Includes alternate API spellings as aliases
 export const PARTY_COLORS = {
+  // CPN-UML (en-dash variant)
   "नेपाल कम्युनिष्ट पार्टी (एकीकृत मार्क्सवादी–लेनिनवादी)": "#E53935",
+  // CPN-UML (space variant – as returned by ECN API)
+  "नेपाल कम्युनिष्ट पार्टी (एकीकृत मार्क्सवादी लेनिनवादी)": "#E53935",
+  // Nepali Congress (काङ्ग्रेस variant)
   "नेपाली काङ्ग्रेस": "#1565C0",
+  // Nepali Congress (काँग्रेस variant – as returned by ECN API)
+  "नेपाली काँग्रेस": "#1565C0",
+  // CPN-Maoist variants
   "नेपाल कम्युनिष्ट पार्टी (माओवादी केन्द्र)": "#C62828",
+  "नेपाल कम्युनिस्ट पार्टी (माओवादी केन्द्र)": "#C62828",
+  // ** Actual ECN 2082 API name (without केन्द्र) **
+  "नेपाल कम्युनिस्ट पार्टी (माओवादी)": "#C62828",
+  "नेपाल कम्युनिष्ट पार्टी (माओवादी)": "#C62828",
   "राष्ट्रिय स्वतन्त्र पार्टी": "#FF8F00",
   "राष्ट्रिय प्रजातन्त्र पार्टी": "#6A1B9A",
   "जनता समाजवादी पार्टी, नेपाल": "#2E7D32",
@@ -157,12 +195,29 @@ export const PARTY_COLORS = {
   स्वतन्त्र: "#78909C",
 };
 
+// English party name → color (built from PARTY_MAP + PARTY_COLORS)
+import { PARTY_MAP } from "@/lib/entityMappings";
+const ENGLISH_PARTY_COLORS = {};
+for (const [ne, color] of Object.entries(PARTY_COLORS)) {
+  if (PARTY_MAP[ne]) {
+    ENGLISH_PARTY_COLORS[PARTY_MAP[ne]] = color;
+  }
+}
+
 export function getPartyColor(partyName) {
-  // Check exact match
+  // Check exact match (Nepali)
   if (PARTY_COLORS[partyName]) return PARTY_COLORS[partyName];
 
-  // Check partial match
+  // Check exact match (English)
+  if (ENGLISH_PARTY_COLORS[partyName]) return ENGLISH_PARTY_COLORS[partyName];
+
+  // Check partial match (Nepali)
   for (const [key, color] of Object.entries(PARTY_COLORS)) {
+    if (partyName.includes(key) || key.includes(partyName)) return color;
+  }
+
+  // Check partial match (English)
+  for (const [key, color] of Object.entries(ENGLISH_PARTY_COLORS)) {
     if (partyName.includes(key) || key.includes(partyName)) return color;
   }
 

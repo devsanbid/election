@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { formatNumber, getPartyColor } from "@/lib/dataUtils";
+import { translateEntity, translateCandidate, matchesBilingual } from "@/lib/entityMappings";
 
 const SYMBOL_BASE = "/api/symbol";
 
@@ -35,20 +36,23 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
 }
 
 export default function ConstituencyTable({ constituencies }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
 
-  const filtered = constituencies.filter(
-    (c) =>
-      c.district.toLowerCase().includes(search.toLowerCase()) ||
-      c.province.toLowerCase().includes(search.toLowerCase()) ||
-      c.candidates.some(
-        (cand) =>
-          cand.name.toLowerCase().includes(search.toLowerCase()) ||
-          cand.party.toLowerCase().includes(search.toLowerCase())
-      )
-  );
+  const searchLower = search.toLowerCase();
+  const filtered = !search
+    ? constituencies
+    : constituencies.filter(
+        (c) =>
+          matchesBilingual(c.district, searchLower, "district") ||
+          matchesBilingual(c.province, searchLower, "province") ||
+          c.candidates.some(
+            (cand) =>
+              matchesBilingual(cand.name, searchLower, "candidate") ||
+              matchesBilingual(cand.party, searchLower, "party")
+          )
+      );
 
   return (
     <div className="constituency-section">
@@ -83,23 +87,22 @@ export default function ConstituencyTable({ constituencies }) {
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <>
+              <Fragment key={c.key}>
                 <tr
-                  key={c.key}
                   className={`constituency-row ${c.declared ? "declared" : ""} ${expanded === c.key ? "expanded-row" : ""}`}
                   onClick={() =>
                     setExpanded(expanded === c.key ? null : c.key)
                   }
                 >
                   <td className="constituency-name">
-                    <span className="district">{c.district}</span>
+                    <span className="district">{translateEntity(c.district, "district", lang)}</span>
                     <span className="const-no">- {c.constituencyNo}</span>
                     <span className="expand-hint">
                       {expanded === c.key ? "▾" : "▸"} {c.candidates.length}
                     </span>
                   </td>
                   <td className="candidate-name">
-                    {c.leading ? c.leading.name : "—"}
+                    {c.leading ? translateCandidate(c.leading.name, lang) : "—"}
                   </td>
                   <td>
                     {c.leading && (
@@ -119,9 +122,7 @@ export default function ConstituencyTable({ constituencies }) {
                           className="party-badge-text"
                           style={{ color: getPartyColor(c.leading.party) }}
                         >
-                          {c.leading.party.length > 25
-                            ? c.leading.party.substring(0, 25) + "…"
-                            : c.leading.party}
+                          {(() => { const p = translateEntity(c.leading.party, "party", lang); return p.length > 25 ? p.substring(0, 25) + "…" : p; })()}
                         </span>
                       </span>
                     )}
@@ -146,7 +147,7 @@ export default function ConstituencyTable({ constituencies }) {
                       <td></td>
                       <td className="candidate-name expanded-candidate">
                         <span className="expanded-rank">#{i + 1}</span>
-                        {cand.name}
+                        {translateCandidate(cand.name, lang)}
                       </td>
                       <td>
                         <span
@@ -165,9 +166,7 @@ export default function ConstituencyTable({ constituencies }) {
                             className="party-badge-text"
                             style={{ color: getPartyColor(cand.party) }}
                           >
-                            {cand.party.length > 30
-                              ? cand.party.substring(0, 30) + "…"
-                              : cand.party}
+                            {(() => { const p = translateEntity(cand.party, "party", lang); return p.length > 30 ? p.substring(0, 30) + "…" : p; })()}
                           </span>
                         </span>
                       </td>
@@ -176,7 +175,7 @@ export default function ConstituencyTable({ constituencies }) {
                     </tr>
                   ))
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -192,7 +191,7 @@ export default function ConstituencyTable({ constituencies }) {
           >
             <div className="card-top">
               <div className="card-constituency">
-                <span className="card-district">{c.district}</span>
+                <span className="card-district">{translateEntity(c.district, "district", lang)}</span>
                 <span className="card-const-no">#{c.constituencyNo}</span>
               </div>
               <span
@@ -211,8 +210,8 @@ export default function ConstituencyTable({ constituencies }) {
                   size={28}
                 />
                 <div className="card-candidate-info">
-                  <span className="card-candidate-name">{c.leading.name}</span>
-                  <span className="card-party-name">{c.leading.party}</span>
+                  <span className="card-candidate-name">{translateCandidate(c.leading.name, lang)}</span>
+                  <span className="card-party-name">{translateEntity(c.leading.party, "party", lang)}</span>
                 </div>
                 <span className="card-votes">
                   {formatNumber(c.leading.votes)}
@@ -230,8 +229,8 @@ export default function ConstituencyTable({ constituencies }) {
                       size={20}
                     />
                     <div className="card-expanded-info">
-                      <span className="other-name">{cand.name}</span>
-                      <span className="card-expanded-party">{cand.party}</span>
+                      <span className="other-name">{translateCandidate(cand.name, lang)}</span>
+                      <span className="card-expanded-party">{translateEntity(cand.party, "party", lang)}</span>
                     </div>
                     <span className="other-votes">
                       {formatNumber(cand.votes)}
