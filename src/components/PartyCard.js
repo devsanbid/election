@@ -13,7 +13,7 @@ export default function PartyCard({ party, totalVotes, rank }) {
     totalVotes > 0 ? ((party.totalVotes / totalVotes) * 100).toFixed(1) : "0.0";
 
   const symbolUrl = party.symbolCode
-    ? `${SYMBOL_BASE}?code=${party.symbolCode}`
+    ? `${SYMBOL_BASE}/${party.symbolCode}`
     : null;
 
   return (

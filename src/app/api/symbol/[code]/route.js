@@ -1,5 +1,4 @@
-// SYMBOLCODE (from JSON data) → SymbolID (for image URL)
-// ECN uses different IDs in their image paths vs data files
+// Path-based symbol proxy — Netlify CDN caches each /api/symbol/<code> separately
 const SYMBOL_MAP = {
   "2583": "1",     // Nepali Congress — रुख (Tree)
   "2598": "2",     // CPN (UML) — सुर्य (Sun)
@@ -20,16 +19,14 @@ const SYMBOL_MAP = {
 
 const ECN_SYMBOL_BASE = "https://result.election.gov.np/Images/symbol-hor-pa";
 
-export async function GET(request) {
+export async function GET(_request, { params }) {
   try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get("code");
+    const { code } = await params;
 
     if (!code) {
       return new Response("Missing symbol code", { status: 400 });
     }
 
-    // Map SYMBOLCODE to the correct SymbolID for the image URL
     const imageId = SYMBOL_MAP[code] || code;
     const imageUrl = `${ECN_SYMBOL_BASE}/${imageId}.jpg?v=0.2`;
 
@@ -41,39 +38,36 @@ export async function GET(request) {
       },
     });
 
-    if (!response.ok) {
-      // Try with the raw code as fallback
-      if (imageId !== code) {
-        const fallback = await fetch(
-          `${ECN_SYMBOL_BASE}/${code}.jpg?v=0.2`,
-          {
-            headers: {
-              "User-Agent": "Mozilla/5.0",
-              Accept: "image/*",
-              Referer: "https://result.election.gov.np/",
-            },
-          }
-        );
-        if (fallback.ok) {
-          const buf = await fallback.arrayBuffer();
-          return new Response(buf, {
-            headers: {
-              "Content-Type": fallback.headers.get("content-type") || "image/jpeg",
-              "Cache-Control": "public, max-age=86400, immutable",
-            },
-          });
-        }
+    if (!response.ok && imageId !== code) {
+      const fallback = await fetch(`${ECN_SYMBOL_BASE}/${code}.jpg?v=0.2`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          Accept: "image/*",
+          Referer: "https://result.election.gov.np/",
+        },
+      });
+      if (fallback.ok) {
+        const buf = await fallback.arrayBuffer();
+        return new Response(buf, {
+          headers: {
+            "Content-Type": fallback.headers.get("content-type") || "image/jpeg",
+            "Cache-Control": "public, max-age=86400, s-maxage=86400, immutable",
+            "CDN-Cache-Control": "public, max-age=86400, immutable",
+          },
+        });
       }
+    }
+
+    if (!response.ok) {
       return new Response("Symbol not found", { status: 404 });
     }
 
     const imageBuffer = await response.arrayBuffer();
-    const contentType = response.headers.get("content-type") || "image/jpeg";
-
     return new Response(imageBuffer, {
       headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400, immutable",
+        "Content-Type": response.headers.get("content-type") || "image/jpeg",
+        "Cache-Control": "public, max-age=86400, s-maxage=86400, immutable",
+        "CDN-Cache-Control": "public, max-age=86400, immutable",
       },
     });
   } catch (error) {

@@ -27,7 +27,7 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`${SYMBOL_BASE}?code=${symbolCode}`}
+      src={`${SYMBOL_BASE}/${symbolCode}`}
       alt={party}
       className="symbol-img"
       style={{ width: size, height: size }}
@@ -113,7 +113,7 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
         <div className="vs-symbol-img">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/api/symbol?code=${candidate.SYMBOLCODE}`}
+            src={`/api/symbol/${candidate.SYMBOLCODE}`}
             alt={candidate.SymbolName || "Symbol"}
             width={64}
             height={64}
@@ -131,9 +131,9 @@ export default function VSPage() {
     "/api/election?type=candidates",
     fetcher,
     {
-      refreshInterval: 5000,
+      refreshInterval: 15000,
       revalidateOnFocus: true,
-      dedupingInterval: 3000,
+      dedupingInterval: 10000,
     }
   );
 

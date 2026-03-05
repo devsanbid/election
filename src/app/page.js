@@ -26,9 +26,9 @@ export default function Home() {
     "/api/election?type=candidates",
     fetcher,
     {
-      refreshInterval: 5000,
+      refreshInterval: 15000,
       revalidateOnFocus: true,
-      dedupingInterval: 3000,
+      dedupingInterval: 10000,
     }
   );
 

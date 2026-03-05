@@ -25,7 +25,7 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
 
   return (
     <img
-      src={`${SYMBOL_BASE}?code=${symbolCode}`}
+      src={`${SYMBOL_BASE}/${symbolCode}`}
       alt={party}
       className="symbol-img"
       style={{ width: size, height: size }}

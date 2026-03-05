@@ -6,17 +6,33 @@ const ENDPOINTS = {
   districts: `${ECN_BASE}/DistrictName.txt`,
 };
 
-export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type") || "candidates";
+// In-memory cache for serverless (shared across warm invocations)
+let cache = {};
+const CACHE_TTL = 10_000; // 10 seconds
 
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get("type") || "candidates";
+
+  try {
     const url = ENDPOINTS[type];
     if (!url) {
       return Response.json(
         { error: "Invalid type. Use: candidates, states, districts" },
         { status: 400 }
       );
+    }
+
+    // Serve from warm cache if fresh
+    const now = Date.now();
+    if (cache[type] && now - cache[type].ts < CACHE_TTL) {
+      return Response.json(cache[type].payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+          "CDN-Cache-Control": "public, max-age=10, stale-while-revalidate=30",
+          "X-Cache": "HIT",
+        },
+      });
     }
 
     const response = await fetch(url, {
@@ -36,22 +52,40 @@ export async function GET(request) {
     try {
       data = JSON.parse(text);
     } catch {
-      // Sometimes the response might have BOM or extra whitespace
       data = JSON.parse(text.trim().replace(/^\uFEFF/, ""));
     }
 
-    return Response.json({
+    const payload = {
       data,
       timestamp: new Date().toISOString(),
       source: "Election Commission Nepal",
+    };
+
+    // Update warm cache
+    cache[type] = { payload, ts: now };
+
+    return Response.json(payload, {
+      headers: {
+        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        "CDN-Cache-Control": "public, max-age=10, stale-while-revalidate=30",
+        "X-Cache": "MISS",
+      },
     });
   } catch (error) {
     console.error("Election API Error:", error);
+
+    // Serve stale cache on error
+    if (cache[type]) {
+      return Response.json(cache[type].payload, {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
+          "X-Cache": "STALE",
+        },
+      });
+    }
+
     return Response.json(
-      {
-        error: "Failed to fetch election data",
-        message: error.message,
-      },
+      { error: "Failed to fetch election data", message: error.message },
       { status: 502 }
     );
   }
