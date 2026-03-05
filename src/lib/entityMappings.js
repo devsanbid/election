@@ -181,6 +181,7 @@ export const CANDIDATE_MAP = {
   // ── RSP (राष्ट्रिय स्वतन्त्र पार्टी) ────────────────────────
   "रवि लामिछाने": "Rabi Lamichhane",
   "रवी लामिछाने": "Rabi Lamichhane",
+  "वालेन्द्र शाह": "Balen Shah",
 
   // ── Progressive Democratic (प्रगतिशील लोकतान्त्रिक) ──────────
   "जनार्दन शर्मा": "Janardhan Sharma",
@@ -189,6 +190,14 @@ export const CANDIDATE_MAP = {
 
   // ── JSP ──────────────────────────────────────────────────────
   "हृदयेश त्रिपाठी": "Hridayesh Tripathi",
+
+  // ── Jhapa-5 (Balen vs KP) featured candidates ─────────────────
+  "मंधरा चिमरिया": "Mandhra Chimiriya",
+  "रन्जित तामाङ": "Ranjit Tamang",
+  "लक्ष्मी प्रसाद संग्रौला": "Laxmi Prasad Sangraula",
+  "धिरेन सुब्बा": "Dhiren Subba",
+  "अमृतलाल महतो": "Amritlal Mahato",
+  "संजय राई": "Sanjay Rai",
 
   // ── Kalikot special ───────────────────────────────────────────
   "महेन्द्र बहादुर शाही": "Mahendra Bahadur Shahi",

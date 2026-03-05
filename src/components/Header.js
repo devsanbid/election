@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function Header({ timestamp, isLoading }) {
@@ -28,6 +29,9 @@ export default function Header({ timestamp, isLoading }) {
         </div>
         <div className="header-right">
           <div className="header-actions">
+            <Link href="/vs" className="vs-nav-link">
+              🔥 {lang === "ne" ? "बालेन vs ओली" : "Balen vs Oli"}
+            </Link>
             <button className="lang-toggle" onClick={toggleLang} title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}>
               <span className="lang-icon">🌐</span>
               <span className="lang-text">{t.language}</span>

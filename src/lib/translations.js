@@ -55,6 +55,24 @@ export const translations = {
 
     // Language toggle
     language: "NE",
+
+    // VS Page
+    vsTitle: "Balen Shah vs KP Sharma Oli",
+    vsSubtitle: "Jhapa-5 • The Most Trending Battle of Election 2082",
+    vsLabel: "VS",
+    age: "Age",
+    partyLabel: "Party",
+    symbol: "Symbol",
+    totalVotesReceived: "Votes Received",
+    leadingBy: "Leading by",
+    backToResults: "← Back to Results",
+    allCandidates: "All Candidates in Jhapa-5",
+    trending: "🔥 TRENDING",
+    constituency: "CONSTITUENCY",
+    rank: "#",
+    candidate: "CANDIDATE",
+    votesCol: "VOTES",
+    watchLive: "Watch Live Count",
   },
   ne: {
     // Header
@@ -112,5 +130,23 @@ export const translations = {
 
     // Language toggle
     language: "EN",
+
+    // VS Page
+    vsTitle: "बालेन शाह vs केपी शर्मा ओली",
+    vsSubtitle: "झापा-५ • निर्वाचन २०८२ को सबैभन्दा चर्चित प्रतिस्पर्धा",
+    vsLabel: "VS",
+    age: "उमेर",
+    partyLabel: "दल",
+    symbol: "चिन्ह",
+    totalVotesReceived: "प्राप्त मत",
+    leadingBy: "अगाडि",
+    backToResults: "← परिणाममा फर्कनुहोस्",
+    allCandidates: "झापा-५ का सबै उम्मेदवारहरू",
+    trending: "🔥 ट्रेन्डिङ",
+    constituency: "निर्वाचन क्षेत्र",
+    rank: "#",
+    candidate: "उम्मेदवार",
+    votesCol: "मत",
+    watchLive: "प्रत्यक्ष मतगणना हेर्नुहोस्",
   },
 };
