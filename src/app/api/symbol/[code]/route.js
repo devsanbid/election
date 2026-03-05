@@ -1,4 +1,5 @@
-// Path-based symbol proxy with in-memory LRU cache + colored SVGs
+// Symbol proxy for minor parties not in public/symbols/
+// Major parties are served as static files from /symbols/{code}.jpg
 import { getImage, setImage } from "@/lib/imageCache";
 import { COLORED_SYMBOLS } from "@/lib/coloredSymbols";
 
