@@ -1,11 +1,39 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { formatNumber, getPartyColor } from "@/lib/dataUtils";
 import { translateEntity, translateCandidate, matchesBilingual } from "@/lib/entityMappings";
 
 const SYMBOL_BASE = "/api/symbol";
+const PHOTO_BASE = "/api/candidate-photo";
+
+// Render rows in batches — avoids 165+ simultaneous image requests
+const BATCH_SIZE = 30;
+
+function CandidatePhoto({ candidateId, name, size = 32 }) {
+  const [failed, setFailed] = useState(false);
+  if (!candidateId || failed) {
+    return (
+      <div
+        className="candidate-photo-placeholder"
+        style={{ width: size, height: size, fontSize: size * 0.4 }}
+      >
+        {(name || "?").charAt(0)}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={`${PHOTO_BASE}/${candidateId}`}
+      alt={name || "Candidate"}
+      className="candidate-photo"
+      style={{ width: size, height: size }}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 function SymbolImg({ symbolCode, party, size = 24 }) {
   const [failed, setFailed] = useState(false);
@@ -39,20 +67,48 @@ export default function ConstituencyTable({ constituencies }) {
   const { t, lang } = useLanguage();
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const sentinelRef = useRef(null);
 
   const searchLower = search.toLowerCase();
-  const filtered = !search
-    ? constituencies
-    : constituencies.filter(
-        (c) =>
-          matchesBilingual(c.district, searchLower, "district") ||
-          matchesBilingual(c.province, searchLower, "province") ||
-          c.candidates.some(
-            (cand) =>
-              matchesBilingual(cand.name, searchLower, "candidate") ||
-              matchesBilingual(cand.party, searchLower, "party")
-          )
-      );
+  const filtered = useMemo(() => {
+    if (!search) return constituencies;
+    return constituencies.filter(
+      (c) =>
+        matchesBilingual(c.district, searchLower, "district") ||
+        matchesBilingual(c.province, searchLower, "province") ||
+        c.candidates.some(
+          (cand) =>
+            matchesBilingual(cand.name, searchLower, "candidate") ||
+            matchesBilingual(cand.party, searchLower, "party")
+        )
+    );
+  }, [constituencies, search, searchLower]);
+
+  // Reset visible count when search/filter changes
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [filtered.length]);
+
+  // Infinite scroll — load next batch when sentinel enters viewport
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filtered.length));
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filtered.length]);
+
+  // Only render visible slice
+  const visibleData = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   // Helper to determine tag type & margin info for a constituency
   function getConstituencyTag(c) {
@@ -61,8 +117,12 @@ export default function ConstituencyTable({ constituencies }) {
     const second = c.candidates[1]?.votes || 0;
     const margin = first - second;
     const isWinner = c.declared;
-    const isClose = margin > 0 && margin < 500;
 
+    // When no votes have been counted (margin 0 and not declared), return null
+    // so the fallback "Counting" badge shows instead of a blank status
+    if (margin <= 0 && !isWinner) return null;
+
+    const isClose = margin > 0 && margin < 500;
     return { margin, isWinner, isClose };
   }
 
@@ -116,7 +176,7 @@ export default function ConstituencyTable({ constituencies }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c) => (
+            {visibleData.map((c) => (
               <Fragment key={c.key}>
                 <tr
                   className={`constituency-row ${c.declared ? "declared" : ""} ${expanded === c.key ? "expanded-row" : ""}`}
@@ -132,7 +192,12 @@ export default function ConstituencyTable({ constituencies }) {
                     </span>
                   </td>
                   <td className="candidate-name">
-                    {c.leading ? translateCandidate(c.leading.name, lang) : "—"}
+                    {c.leading ? (
+                      <span className="candidate-name-with-photo">
+                        <CandidatePhoto candidateId={c.leading.id} name={c.leading.name} size={32} />
+                        {translateCandidate(c.leading.name, lang)}
+                      </span>
+                    ) : "—"}
                   </td>
                   <td>
                     {c.leading && (
@@ -184,6 +249,7 @@ export default function ConstituencyTable({ constituencies }) {
                       <td></td>
                       <td className="candidate-name expanded-candidate">
                         <span className="expanded-rank">#{i + 1}</span>
+                        <CandidatePhoto candidateId={cand.id} name={cand.name} size={26} />
                         {translateCandidate(cand.name, lang)}
                       </td>
                       <td>
@@ -220,7 +286,7 @@ export default function ConstituencyTable({ constituencies }) {
 
       {/* Mobile Cards */}
       <div className="constituency-cards">
-        {filtered.map((c) => {
+        {visibleData.map((c) => {
           const tagInfo = getConstituencyTag(c);
           return (
           <div
@@ -247,11 +313,7 @@ export default function ConstituencyTable({ constituencies }) {
             </div>
             {c.leading && (
               <div className="card-leading">
-                <SymbolImg
-                  symbolCode={c.leading.symbolCode}
-                  party={c.leading.party}
-                  size={28}
-                />
+                <CandidatePhoto candidateId={c.leading.id} name={c.leading.name} size={36} />
                 <div className="card-candidate-info">
                   <span className="card-candidate-name">{translateCandidate(c.leading.name, lang)}</span>
                   <span className="card-party-name">{translateEntity(c.leading.party, "party", lang)}</span>
@@ -269,11 +331,7 @@ export default function ConstituencyTable({ constituencies }) {
               <div className="card-expanded">
                 {c.candidates.map((cand, i) => (
                   <div key={i} className="card-other-candidate">
-                    <SymbolImg
-                      symbolCode={cand.symbolCode}
-                      party={cand.party}
-                      size={20}
-                    />
+                    <CandidatePhoto candidateId={cand.id} name={cand.name} size={24} />
                     <div className="card-expanded-info">
                       <span className="other-name">{translateCandidate(cand.name, lang)}</span>
                       <span className="card-expanded-party">{translateEntity(cand.party, "party", lang)}</span>
@@ -289,6 +347,13 @@ export default function ConstituencyTable({ constituencies }) {
           );
         })}
       </div>
+
+      {/* Infinite scroll sentinel */}
+      {hasMore && (
+        <div ref={sentinelRef} className="load-more-sentinel">
+          <div className="loading-more-text">{t.loadingText || "Loading..."}</div>
+        </div>
+      )}
 
       {filtered.length === 0 && (
         <div className="no-results">

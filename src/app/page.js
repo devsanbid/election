@@ -10,6 +10,7 @@ import ProvinceFilter from "@/components/ProvinceFilter";
 import ConstituencyTable from "@/components/ConstituencyTable";
 import {
   aggregateByParty,
+  enrichPartyStats,
   groupByConstituency,
   filterByProvince,
   getTopParties,
@@ -26,9 +27,10 @@ export default function Home() {
     "/api/election?type=candidates",
     fetcher,
     {
-      refreshInterval: 15000,
+      refreshInterval: 30000,
       revalidateOnFocus: true,
-      dedupingInterval: 10000,
+      dedupingInterval: 15000,
+      keepPreviousData: true,
     }
   );
 
@@ -39,7 +41,7 @@ export default function Home() {
     [candidates, selectedProvince]
   );
 
-  const parties = useMemo(
+  const rawParties = useMemo(
     () => aggregateByParty(filteredCandidates),
     [filteredCandidates]
   );
@@ -47,6 +49,12 @@ export default function Home() {
   const constituencies = useMemo(
     () => groupByConstituency(filteredCandidates),
     [filteredCandidates]
+  );
+
+  // Enrich party data with dynamic seatsWon/seatsLeading from constituency results
+  const parties = useMemo(
+    () => enrichPartyStats(rawParties, constituencies),
+    [rawParties, constituencies]
   );
 
   const allConstituencies = useMemo(

@@ -28,16 +28,38 @@ export function aggregateByParty(candidates) {
     }
     partyMap[party].totalVotes += Number(c.TotalVoteReceived) || 0;
     partyMap[party].candidates += 1;
-
-    const status = (c.E_STATUS || "").trim();
-    if (status === "विजयी" || status === "Winner") {
-      partyMap[party].seatsWon += 1;
-    } else if (status === "अगाडि" || status === "Leading") {
-      partyMap[party].seatsLeading += 1;
-    }
   });
 
   return Object.values(partyMap).sort((a, b) => b.totalVotes - a.totalVotes);
+}
+
+/**
+ * Enrich party data with dynamic seatsWon and seatsLeading
+ * calculated from constituency-level results (not E_STATUS per candidate).
+ * This is fully dynamic — no hardcoded values.
+ */
+export function enrichPartyStats(parties, constituencies) {
+  const wonMap = {};
+  const leadingMap = {};
+
+  constituencies.forEach((c) => {
+    if (!c.leading) return;
+    const party = c.leading.party;
+
+    if (c.declared) {
+      // Constituency has a declared winner
+      wonMap[party] = (wonMap[party] || 0) + 1;
+    } else if (c.totalVotes > 0 && c.leading.votes > 0) {
+      // Active counting — leading candidate's party gets credit
+      leadingMap[party] = (leadingMap[party] || 0) + 1;
+    }
+  });
+
+  return parties.map((p) => ({
+    ...p,
+    seatsWon: wonMap[p.name] || 0,
+    seatsLeading: leadingMap[p.name] || 0,
+  }));
 }
 
 /**
@@ -77,7 +99,7 @@ export function groupByConstituency(candidates) {
     }
   });
 
-  // Default leading overrides when all votes are 0 (pre-counting)
+  // Pre-counting override: show specific candidate as leading when all votes are 0
   const DEFAULT_LEADING = {
     "कालिकोट": "महेन्द्र बहादुर शाही",
   };
@@ -86,7 +108,7 @@ export function groupByConstituency(candidates) {
   Object.values(constMap).forEach((constituency) => {
     constituency.candidates.sort((a, b) => b.votes - a.votes);
 
-    // If no votes counted yet and a default leading is configured, promote that candidate
+    // If no votes counted yet, promote the default leading candidate to top
     const override = DEFAULT_LEADING[constituency.district];
     if (override && constituency.totalVotes === 0) {
       const idx = constituency.candidates.findIndex((cand) =>

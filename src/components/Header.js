@@ -18,6 +18,21 @@ export default function Header({ timestamp, isLoading }) {
     <header className="header">
       <div className="header-inner">
         <div className="header-left">
+          {/* Nepal Flag SVG */}
+          <svg className="nepal-flag" viewBox="0 0 100 120" width="32" height="38" aria-label="Nepal Flag">
+            <defs>
+              <clipPath id="flagClip">
+                <polygon points="0,0 100,40 60,60 100,100 0,120" />
+              </clipPath>
+            </defs>
+            <polygon points="0,0 100,40 60,60 100,100 0,120" fill="#003893" stroke="#003893" strokeWidth="2"/>
+            <polygon points="5,4 92,40 60,58 92,96 5,116" fill="#DC143C"/>
+            {/* Moon */}
+            <circle cx="38" cy="30" r="12" fill="#fff"/>
+            <circle cx="42" cy="28" r="10" fill="#DC143C"/>
+            {/* Sun / star shape */}
+            <polygon points="38,60 40,70 35,63 41,63 36,70" fill="#fff" transform="scale(1.5) translate(-8,-18)"/>
+          </svg>
           <span className="live-badge">
             <span className="live-dot"></span>
             {t.live}

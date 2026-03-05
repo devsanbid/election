@@ -5,10 +5,36 @@ import Link from "next/link";
 import useSWR from "swr";
 import { useLanguage } from "@/lib/LanguageContext";
 import { sanitizeName, formatNumber, getPartyColor } from "@/lib/dataUtils";
-import { translateCandidate, translateEntity } from "@/lib/entityMappings";
+import { translateCandidate, translateEntity, translateSymbolName } from "@/lib/entityMappings";
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 const SYMBOL_BASE = "/api/symbol";
+const PHOTO_BASE = "/api/candidate-photo";
+
+function CandidatePhoto({ candidateId, name, size = 32 }) {
+  const [failed, setFailed] = useState(false);
+  if (!candidateId || failed) {
+    return (
+      <div
+        className="candidate-photo-placeholder"
+        style={{ width: size, height: size, fontSize: size * 0.4 }}
+      >
+        {(name || "?").charAt(0)}
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`${PHOTO_BASE}/${candidateId}`}
+      alt={name || "Candidate"}
+      className="candidate-photo"
+      style={{ width: size, height: size }}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 function SymbolImg({ symbolCode, party, size = 24 }) {
   const [failed, setFailed] = useState(false);
@@ -49,7 +75,6 @@ const PROFILES = {
     nameEn: "Balen Shah",
     nameNe: "वालेन्द्र शाह",
     title: { en: "Former Mayor of Kathmandu", ne: "काठमाडौं महानगरको पूर्व मेयर" },
-    photo: "/candidates/balen-shah.png",
     color: "#2196F3", // RSP blue
     bgGradient: "linear-gradient(135deg, #2196F3 0%, #1565C0 100%)",
   },
@@ -57,7 +82,6 @@ const PROFILES = {
     nameEn: "KP Sharma Oli",
     nameNe: "के.पी शर्मा ओली",
     title: { en: "Former Prime Minister", ne: "पूर्व प्रधानमन्त्री" },
-    photo: "/candidates/kp-oli.jpg",
     color: "#E53935", // UML color
     bgGradient: "linear-gradient(135deg, #E53935 0%, #B71C1C 100%)",
   },
@@ -80,11 +104,13 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
       <div className="vs-card-avatar" style={{ background: profile.bgGradient }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={profile.photo}
+          src={`${PHOTO_BASE}/${candidate.CandidateID}`}
           alt={name}
           className="vs-avatar-photo"
           width={90}
           height={90}
+          fetchPriority="high"
+          loading="eager"
         />
       </div>
       <h2 className="vs-card-name">{name}</h2>
@@ -100,7 +126,7 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
         </div>
         <div className="vs-stat">
           <span className="vs-stat-label">{t.symbol}</span>
-          <span className="vs-stat-value">{candidate.SymbolName}</span>
+          <span className="vs-stat-value">{translateSymbolName(candidate.SymbolName, lang)}</span>
         </div>
         <div className="vs-stat vs-stat-votes">
           <span className="vs-stat-label">{t.totalVotesReceived}</span>
@@ -131,9 +157,10 @@ export default function VSPage() {
     "/api/election?type=candidates",
     fetcher,
     {
-      refreshInterval: 15000,
+      refreshInterval: 30000,
       revalidateOnFocus: true,
-      dedupingInterval: 10000,
+      dedupingInterval: 15000,
+      keepPreviousData: true,
     }
   );
 
@@ -314,6 +341,7 @@ export default function VSPage() {
                         >
                           <td className="vs-rank">{idx + 1}</td>
                           <td className="vs-cand-name">
+                            <CandidatePhoto candidateId={c.CandidateID} name={name} size={30} />
                             {translateCandidate(name, lang)}
                             {isFeatured && <span className="vs-star">⭐</span>}
                           </td>
@@ -332,7 +360,7 @@ export default function VSPage() {
                             </span>
                           </td>
                           <td className="vs-symbol-cell">
-                            {c.SymbolName || "—"}
+                            {translateSymbolName(c.SymbolName, lang) || "—"}
                           </td>
                           <td>{c.AGE_YR}</td>
                           <td className="vs-votes-cell">
@@ -364,6 +392,7 @@ export default function VSPage() {
                         </span>
                         <div className="vs-mobile-card-name">
                           <span className="vs-mobile-cand">
+                            <CandidatePhoto candidateId={c.CandidateID} name={name} size={28} />
                             {translateCandidate(name, lang)}
                             {isFeatured && <span className="vs-star">⭐</span>}
                           </span>

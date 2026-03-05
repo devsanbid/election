@@ -6,9 +6,10 @@ const ENDPOINTS = {
   districts: `${ECN_BASE}/DistrictName.txt`,
 };
 
-// In-memory cache for serverless (shared across warm invocations)
+// In-memory cache — 60s keeps data warm between SWR polls (15s interval)
+// On cold start, first request fetches from ECN, all subsequent requests use cache
 let cache = {};
-const CACHE_TTL = 10_000; // 10 seconds
+const CACHE_TTL = 60_000; // 60 seconds (up from 10s)
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -28,8 +29,8 @@ export async function GET(request) {
     if (cache[type] && now - cache[type].ts < CACHE_TTL) {
       return Response.json(cache[type].payload, {
         headers: {
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
-          "CDN-Cache-Control": "public, max-age=10, stale-while-revalidate=30",
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+          "CDN-Cache-Control": "public, max-age=30, stale-while-revalidate=60",
           "X-Cache": "HIT",
         },
       });
@@ -40,6 +41,7 @@ export async function GET(request) {
       headers: {
         "User-Agent": "Mozilla/5.0",
         Accept: "application/json, text/plain, */*",
+        "Accept-Encoding": "gzip, deflate, br",
       },
     });
 
@@ -66,19 +68,19 @@ export async function GET(request) {
 
     return Response.json(payload, {
       headers: {
-        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
-        "CDN-Cache-Control": "public, max-age=10, stale-while-revalidate=30",
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+        "CDN-Cache-Control": "public, max-age=30, stale-while-revalidate=60",
         "X-Cache": "MISS",
       },
     });
   } catch (error) {
     console.error("Election API Error:", error);
 
-    // Serve stale cache on error
+    // Serve stale cache on error (any age)
     if (cache[type]) {
       return Response.json(cache[type].payload, {
         headers: {
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
           "X-Cache": "STALE",
         },
       });

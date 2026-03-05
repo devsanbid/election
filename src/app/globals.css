@@ -276,6 +276,11 @@ a:hover {
   gap: var(--space-md);
 }
 
+.nepal-flag {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(220, 20, 60, 0.3));
+}
+
 .live-badge {
   display: flex;
   align-items: center;
@@ -640,6 +645,38 @@ a:hover {
 .symbol-dot {
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* Candidate photos — circular avatar style */
+.candidate-photo {
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--border-glow);
+  flex-shrink: 0;
+  vertical-align: middle;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 8px rgba(99, 152, 255, 0.15);
+}
+
+.candidate-photo-placeholder {
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99, 152, 255, 0.25), rgba(139, 92, 246, 0.25));
+  border: 2px solid var(--border-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* Name with photo inline layout */
+.candidate-name-with-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Party badge with symbol in table */
@@ -1260,6 +1297,17 @@ details[open] .party-grid {
   padding: var(--space-2xl);
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+/* Infinite scroll sentinel */
+.load-more-sentinel {
+  text-align: center;
+  padding: var(--space-lg) 0;
+}
+.loading-more-text {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
 
 /* ===================================
@@ -2078,6 +2126,9 @@ details[open] .party-grid {
 
 .vs-cand-name {
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .vs-star {
@@ -2167,6 +2218,9 @@ details[open] .party-grid {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .vs-mobile-age {

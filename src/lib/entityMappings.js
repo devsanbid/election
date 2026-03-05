@@ -508,6 +508,77 @@ function transliterate(devanagari) {
 
 // ─── Public API ─────────────────────────────────────────────────
 
+// Symbol name translations (Nepali → English)
+export const SYMBOL_NAME_MAP = {
+  "रुख": "Tree",
+  "सुर्य": "Surya",
+  "पाँचकुने तारा": "Hasiya Hatauda",
+  "ढल्केको छाता": "Tilted Umbrella",
+  "हलो": "Plow",
+  "घण्टी": "Bell",
+  "चकिया (जाँतो)": "Grinder (Jaato)",
+  "गिलास": "Glass",
+  "मादल": "Madal",
+  "कुखुराको भाले": "Rooster",
+  "घर": "House",
+  "कलम": "Pen",
+  "साइकल": "Bicycle",
+  "धारा": "Water Tap",
+  "कमलको फूल": "Lotus Flower",
+  "हँसिया": "Sickle",
+  "कोदालो": "Hoe",
+  "बाँसुरी": "Flute",
+  "ढाका टोपी": "Dhaka Topi",
+  "डुङ्‌गा": "Boat",
+  "ट्रयाक्टर": "Tractor",
+  "बस": "Bus",
+  "घोडा": "Horse",
+  "भेडा": "Sheep",
+  "भैँसी": "Buffalo",
+  "रथ": "Chariot",
+  "जग": "Jug",
+  "तुलसी, मठ": "Tulsi Math",
+  "पञ्जा छाप": "Palm Print",
+  "लाउड स्पिकर": "Loudspeaker",
+  "दायाँ हातले समातेको मसाल": "Torch Held in Right Hand",
+  "बुल्डोजर": "Bulldozer",
+  "चापाकल (ट्‍युवेल)": "Tubewell",
+  "षटकोण": "Hexagon",
+  "हात मिलाएको": "Handshake",
+  "बलिरहेको दियो": "Burning Lamp",
+  "दुई हात जोडेको नमस्कार": "Namaste (Folded Hands)",
+  "दाप सहितको खुकुरी": "Khukuri with Sheath",
+  "चङ्‌गा": "Kite",
+  "भित्ते घडी": "Wall Clock",
+  "गितार": "Guitar",
+  "मोबाइल": "Mobile Phone",
+  "ब्याट्री": "Battery",
+  "सिट्ठी": "Whistle",
+  "डोको": "Doko (Basket)",
+  "रिक्सा": "Rickshaw",
+  "बलिरहेको बिजुलीको चिम": "Burning Light Bulb",
+  "आँप": "Mango",
+  "अनार": "Pomegranate",
+  "केराको काइँयो": "Banana Bunch",
+  "फर्सी": "Pumpkin",
+  "काउली": "Cauliflower",
+};
+
+/**
+ * Translate a symbol name from Nepali to English.
+ * @param {string} nepaliName — the Nepali symbol name from the API
+ * @param {"en"|"ne"} lang — current language
+ * @returns {string}
+ */
+export function translateSymbolName(nepaliName, lang) {
+  if (!nepaliName) return "";
+  if (lang === "ne") return nepaliName;
+  const trimmed = nepaliName.trim();
+  if (SYMBOL_NAME_MAP[trimmed]) return SYMBOL_NAME_MAP[trimmed];
+  // Fallback: transliterate
+  return transliterate(trimmed);
+}
+
 const MAPS = {
   province: PROVINCE_MAP,
   district: DISTRICT_MAP,
