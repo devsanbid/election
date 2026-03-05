@@ -53,6 +53,13 @@ export const translations = {
     retry: "Retry",
     noResults: "No constituencies found matching",
 
+    // Tags
+    winnerTag: "WINNER ✓",
+    leadingTag: "LEADING",
+    closeFight: "CLOSE FIGHT",
+    marginLabel: "margin",
+    topPartyTag: "#1 PARTY",
+
     // Language toggle
     language: "NE",
 
@@ -127,6 +134,13 @@ export const translations = {
       "निर्वाचन आयोगको सर्भरमा जडान हुन सकेन। मतगणनाको समयमा भीडको कारणले हुन सक्छ।",
     retry: "पुनः प्रयास",
     noResults: "खोजीसँग मिल्ने क्षेत्र भेटिएन",
+
+    // Tags
+    winnerTag: "विजयी ✓",
+    leadingTag: "अगाडि",
+    closeFight: "कडा प्रतिस्पर्धा",
+    marginLabel: "अन्तर",
+    topPartyTag: "#१ दल",
 
     // Language toggle
     language: "EN",

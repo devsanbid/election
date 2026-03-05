@@ -54,6 +54,36 @@ export default function ConstituencyTable({ constituencies }) {
           )
       );
 
+  // Helper to determine tag type & margin info for a constituency
+  function getConstituencyTag(c) {
+    if (!c.leading || c.candidates.length < 2) return null;
+    const first = c.candidates[0]?.votes || 0;
+    const second = c.candidates[1]?.votes || 0;
+    const margin = first - second;
+    const isWinner = c.declared;
+    const isClose = margin > 0 && margin < 500;
+
+    return { margin, isWinner, isClose };
+  }
+
+  function MarginBadge({ margin }) {
+    if (!margin || margin <= 0) return null;
+    const cls = margin >= 5000 ? "large-lead" : margin >= 1000 ? "moderate-lead" : "narrow-lead";
+    return (
+      <span className={`margin-tag ${cls}`}>
+        +{formatNumber(margin)}
+      </span>
+    );
+  }
+
+  function WinningTag({ tagInfo }) {
+    if (!tagInfo) return null;
+    if (tagInfo.isWinner) return <span className="winning-tag winner">{t.winnerTag}</span>;
+    if (tagInfo.isClose) return <span className="winning-tag close-fight">🔥 {t.closeFight}</span>;
+    if (tagInfo.margin > 0) return <span className="winning-tag is-leading">▲ {t.leadingTag}</span>;
+    return null;
+  }
+
   return (
     <div className="constituency-section">
       <div className="constituency-header">
@@ -128,16 +158,23 @@ export default function ConstituencyTable({ constituencies }) {
                     )}
                   </td>
                   <td className="votes-cell">
-                    {c.leading ? formatNumber(c.leading.votes) : "—"}
+                    <span>{c.leading ? formatNumber(c.leading.votes) : "—"}</span>
+                    {(() => { const info = getConstituencyTag(c); return info ? <MarginBadge margin={info.margin} /> : null; })()}
                   </td>
                   <td>
-                    <span
-                      className={`status-badge ${
-                        c.declared ? "status-declared" : "status-counting"
-                      }`}
-                    >
-                      {c.declared ? `✅ ${t.declared}` : `⏳ ${t.countingStatus}`}
-                    </span>
+                    {(() => {
+                      const info = getConstituencyTag(c);
+                      return info ? <WinningTag tagInfo={info} /> : null;
+                    })()}
+                    {!getConstituencyTag(c) && (
+                      <span
+                        className={`status-badge ${
+                          c.declared ? "status-declared" : "status-counting"
+                        }`}
+                      >
+                        {c.declared ? `✅ ${t.declared}` : `⏳ ${t.countingStatus}`}
+                      </span>
+                    )}
                   </td>
                 </tr>
                 {/* Expanded: show ALL candidates */}
@@ -183,7 +220,9 @@ export default function ConstituencyTable({ constituencies }) {
 
       {/* Mobile Cards */}
       <div className="constituency-cards">
-        {filtered.map((c) => (
+        {filtered.map((c) => {
+          const tagInfo = getConstituencyTag(c);
+          return (
           <div
             key={c.key}
             className={`constituency-card ${c.declared ? "declared" : ""}`}
@@ -194,13 +233,17 @@ export default function ConstituencyTable({ constituencies }) {
                 <span className="card-district">{translateEntity(c.district, "district", lang)}</span>
                 <span className="card-const-no">#{c.constituencyNo}</span>
               </div>
-              <span
-                className={`status-badge ${
-                  c.declared ? "status-declared" : "status-counting"
-                }`}
-              >
-                {c.declared ? t.declared : t.countingStatus}
-              </span>
+              {tagInfo ? (
+                <WinningTag tagInfo={tagInfo} />
+              ) : (
+                <span
+                  className={`status-badge ${
+                    c.declared ? "status-declared" : "status-counting"
+                  }`}
+                >
+                  {c.declared ? t.declared : t.countingStatus}
+                </span>
+              )}
             </div>
             {c.leading && (
               <div className="card-leading">
@@ -213,9 +256,12 @@ export default function ConstituencyTable({ constituencies }) {
                   <span className="card-candidate-name">{translateCandidate(c.leading.name, lang)}</span>
                   <span className="card-party-name">{translateEntity(c.leading.party, "party", lang)}</span>
                 </div>
-                <span className="card-votes">
-                  {formatNumber(c.leading.votes)}
-                </span>
+                <div className="card-votes-group">
+                  <span className="card-votes">
+                    {formatNumber(c.leading.votes)}
+                  </span>
+                  {tagInfo && <MarginBadge margin={tagInfo.margin} />}
+                </div>
               </div>
             )}
             {/* Show ALL candidates on expand (mobile) */}
@@ -240,7 +286,8 @@ export default function ConstituencyTable({ constituencies }) {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (

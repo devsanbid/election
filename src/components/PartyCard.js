@@ -19,6 +19,9 @@ export default function PartyCard({ party, totalVotes, rank }) {
   return (
     <div className="party-card" style={{ "--party-color": color }}>
       <div className="party-rank">#{rank}</div>
+      {rank === 1 && totalVotes > 0 && (
+        <div className="party-winning-bar top-party">🏆 {t.topPartyTag}</div>
+      )}
       <div className="party-header">
         {symbolUrl ? (
           <div className="party-symbol-img-wrapper">
