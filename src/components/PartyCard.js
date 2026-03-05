@@ -3,8 +3,7 @@
 import { useLanguage } from "@/lib/LanguageContext";
 import { formatNumber, getPartyColor } from "@/lib/dataUtils";
 import { translateEntity, translateSymbolName } from "@/lib/entityMappings";
-
-const SYMBOL_BASE = "/api/symbol";
+import { getSymbolUrl } from "@/lib/symbolUrl";
 
 export default function PartyCard({ party, totalVotes, rank }) {
   const { t, lang } = useLanguage();
@@ -13,7 +12,7 @@ export default function PartyCard({ party, totalVotes, rank }) {
     totalVotes > 0 ? ((party.totalVotes / totalVotes) * 100).toFixed(1) : "0.0";
 
   const symbolUrl = party.symbolCode
-    ? `${SYMBOL_BASE}/${party.symbolCode}`
+    ? getSymbolUrl(party.symbolCode)
     : null;
 
   return (

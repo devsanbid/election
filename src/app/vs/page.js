@@ -6,9 +6,9 @@ import useSWR from "swr";
 import { useLanguage } from "@/lib/LanguageContext";
 import { sanitizeName, formatNumber, getPartyColor } from "@/lib/dataUtils";
 import { translateCandidate, translateEntity, translateSymbolName } from "@/lib/entityMappings";
+import { getSymbolUrl } from "@/lib/symbolUrl";
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
-const SYMBOL_BASE = "/api/symbol";
 const PHOTO_BASE = "/api/candidate-photo";
 
 function CandidatePhoto({ candidateId, name, size = 32 }) {
@@ -53,7 +53,7 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`${SYMBOL_BASE}/${symbolCode}`}
+      src={getSymbolUrl(symbolCode)}
       alt={party}
       className="symbol-img"
       style={{ width: size, height: size }}
@@ -139,7 +139,7 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
         <div className="vs-symbol-img">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/api/symbol/${candidate.SYMBOLCODE}`}
+            src={getSymbolUrl(candidate.SYMBOLCODE)}
             alt={candidate.SymbolName || "Symbol"}
             width={64}
             height={64}

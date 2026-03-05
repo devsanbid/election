@@ -4,8 +4,8 @@ import { useState, Fragment, useEffect, useRef, useCallback, useMemo } from "rea
 import { useLanguage } from "@/lib/LanguageContext";
 import { formatNumber, getPartyColor } from "@/lib/dataUtils";
 import { translateEntity, translateCandidate, matchesBilingual } from "@/lib/entityMappings";
+import { getSymbolUrl } from "@/lib/symbolUrl";
 
-const SYMBOL_BASE = "/api/symbol";
 const PHOTO_BASE = "/api/candidate-photo";
 
 // Render rows in batches — avoids 165+ simultaneous image requests
@@ -53,7 +53,7 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
 
   return (
     <img
-      src={`${SYMBOL_BASE}/${symbolCode}`}
+      src={getSymbolUrl(symbolCode)}
       alt={party}
       className="symbol-img"
       style={{ width: size, height: size }}

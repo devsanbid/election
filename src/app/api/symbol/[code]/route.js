@@ -1,5 +1,6 @@
-// Path-based symbol proxy with in-memory LRU cache
+// Path-based symbol proxy with in-memory LRU cache + colored SVGs
 import { getImage, setImage } from "@/lib/imageCache";
+import { COLORED_SYMBOLS } from "@/lib/coloredSymbols";
 
 const SYMBOL_MAP = {
   "2583": "1",     // Nepali Congress — रुख (Tree)
@@ -44,9 +45,21 @@ export async function GET(_request, { params }) {
       return new Response("Missing symbol code", { status: 400 });
     }
 
+    // 1. Serve colored SVG for major parties (instant, no fetch)
+    const coloredSvg = COLORED_SYMBOLS[code];
+    if (coloredSvg) {
+      return new Response(coloredSvg, {
+        headers: {
+          "Content-Type": "image/svg+xml",
+          "X-Cache": "COLORED",
+          ...RESP_HEADERS,
+        },
+      });
+    }
+
     const cacheKey = `sym:${code}`;
 
-    // 1. Serve from in-memory cache (instant)
+    // 2. Serve from in-memory cache (instant)
     const cached = getImage(cacheKey);
     if (cached) {
       return new Response(cached.buf, {
