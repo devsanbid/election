@@ -61,12 +61,13 @@ export default function Header({ timestamp, isLoading }) {
         <Link href="/vs" className="vs-nav-link">
           🔥 {lang === "ne" ? "बालेन vs ओली" : "Balen vs Oli"}
         </Link>
-        <Link href="/vs/gagan-vs-amaresh" className="vs-nav-link">
-          🔥 {lang === "ne" ? "गगन vs अमरेश" : "Gagan vs Amaresh"}
-        </Link>
         <Link href="/vs/mahendra-vs-nagindra" className="vs-nav-link">
           🔥 {lang === "ne" ? "महेन्द्र vs नगीन्द्र" : "Mahendra vs Nagindra"}
         </Link>
+        <Link href="/vs/gagan-vs-amaresh" className="vs-nav-link">
+          🔥 {lang === "ne" ? "गगन vs अमरेश" : "Gagan vs Amaresh"}
+        </Link>
+        
       </div>
     </header>
   );
