@@ -1,7 +1,7 @@
 /**
  * Symbol URL resolver.
  * Major parties → static /symbols/{code}.jpg (official, colorful, instant)
- * Others → /api/symbol/{code} (proxy to ECN, cached)
+ * Others → direct ECN URL (no proxy needed for <img> tags)
  */
 
 // Downloaded official colorful symbols in public/symbols/
@@ -20,11 +20,14 @@ const LOCAL_SYMBOLS = new Set([
   "2529", // Nepal Janamukti Party
 ]);
 
+const ECN_SYMBOL_BASE = "https://result.election.gov.np/Images/symbol-hor-pa";
+
 export function getSymbolUrl(symbolCode) {
   if (!symbolCode) return null;
   const code = String(symbolCode);
   if (LOCAL_SYMBOLS.has(code)) {
     return `/symbols/${code}.jpg`;
   }
-  return `/api/symbol/${code}`;
+  return `${ECN_SYMBOL_BASE}/${code}.jpg?v=0.2`;
 }
+

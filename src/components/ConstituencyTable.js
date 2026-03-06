@@ -6,7 +6,7 @@ import { formatNumber, getPartyColor } from "@/lib/dataUtils";
 import { translateEntity, translateCandidate, matchesBilingual } from "@/lib/entityMappings";
 import { getSymbolUrl } from "@/lib/symbolUrl";
 
-const PHOTO_BASE = "/api/candidate-photo";
+const PHOTO_BASE = "https://result.election.gov.np/Images/candidate";
 
 // Render rows in batches — avoids 165+ simultaneous image requests
 const BATCH_SIZE = 30;
@@ -25,7 +25,7 @@ function CandidatePhoto({ candidateId, name, size = 32 }) {
   }
   return (
     <img
-      src={`${PHOTO_BASE}/${candidateId}`}
+      src={`${PHOTO_BASE}/${candidateId}.jpg`}
       alt={name || "Candidate"}
       className="candidate-photo"
       style={{ width: size, height: size }}

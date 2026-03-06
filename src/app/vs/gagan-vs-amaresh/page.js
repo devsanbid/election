@@ -63,27 +63,41 @@ function SymbolImg({ symbolCode, party, size = 24 }) {
   );
 }
 
-// Jhapa-5 candidate IDs from ECN API
-const BALEN_ID = 339653;
-const KP_OLI_ID = 340111;
-const JHAPA_5_DISTRICT = "झापा";
-const JHAPA_5_CONST = 5;
+// Sarlahi-4 candidate IDs
+const GAGAN_ID = 341549;
+const AMARESH_ID = 340974;
+const SARLAHI_DISTRICT = "सर्लाही";
+const SARLAHI_CONST = "4";
 
-// Candidate profile data (supplemental to API)
+// Candidate profile data
 const PROFILES = {
-  [BALEN_ID]: {
-    nameEn: "Balen Shah",
-    nameNe: "वालेन्द्र शाह",
-    title: { en: "Former Mayor of Kathmandu", ne: "काठमाडौं महानगरको पूर्व मेयर" },
+  [GAGAN_ID]: {
+    nameEn: "Gagan Kumar Thapa",
+    nameNe: "गगन कुमार थापा",
+    title: { en: "Nepali Congress Leader", ne: "नेपाली काँग्रेस नेता" },
+    color: "#1565C0", // Congress blue
+    bgGradient: "linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)",
+  },
+  [AMARESH_ID]: {
+    nameEn: "Amaresh Kumar Singh",
+    nameNe: "अमरेश कुमार सिह",
+    title: { en: "Rastriya Swatantra Party", ne: "राष्ट्रिय स्वतन्त्र पार्टी" },
     color: "#2196F3", // RSP blue
     bgGradient: "linear-gradient(135deg, #2196F3 0%, #1565C0 100%)",
   },
-  [KP_OLI_ID]: {
-    nameEn: "KP Sharma Oli",
-    nameNe: "के.पी शर्मा ओली",
-    title: { en: "Former Prime Minister", ne: "पूर्व प्रधानमन्त्री" },
-    color: "#E53935", // UML color
-    bgGradient: "linear-gradient(135deg, #E53935 0%, #B71C1C 100%)",
+};
+
+// VS-specific translation strings for this page
+const VS_STRINGS = {
+  en: {
+    vsTitle: "Gagan Kumar Thapa vs Amaresh Kumar Singh",
+    vsSubtitle: "Sarlahi-4 • Madhesh Pradesh Battle of Election 2082",
+    allCandidates: "All Candidates in Sarlahi-4",
+  },
+  ne: {
+    vsTitle: "गगन कुमार थापा vs अमरेश कुमार सिह",
+    vsSubtitle: "सर्लाही-४ • मधेश प्रदेशको निर्वाचन २०८२ प्रतिस्पर्धा",
+    allCandidates: "सर्लाही-४ का सबै उम्मेदवारहरू",
   },
 };
 
@@ -121,10 +135,6 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
           <span className="vs-stat-value" style={{ color: profile.color }}>{partyName}</span>
         </div>
         <div className="vs-stat">
-          <span className="vs-stat-label">{t.age}</span>
-          <span className="vs-stat-value">{candidate.AGE_YR}</span>
-        </div>
-        <div className="vs-stat">
           <span className="vs-stat-label">{t.symbol}</span>
           <span className="vs-stat-value">{translateSymbolName(candidate.SymbolName, lang)}</span>
         </div>
@@ -150,8 +160,9 @@ function CandidateCard({ candidate, profile, lang, isLeading, t }) {
   );
 }
 
-export default function VSPage() {
+export default function GaganVsAmareshPage() {
   const { t, lang, toggleLang } = useLanguage();
+  const vs = VS_STRINGS[lang] || VS_STRINGS.en;
 
   const { data, error, isLoading, isValidating } = useSWR(
     "/api/election?type=candidates",
@@ -166,46 +177,43 @@ export default function VSPage() {
 
   const candidates = data?.data || [];
 
-  // Extract Balen and KP Oli + all Jhapa-5 candidates
-  const { balen, kpOli, jhapa5Candidates } = useMemo(() => {
-    let balen = null;
-    let kpOli = null;
-    const jhapa5 = [];
+  // Extract Gagan and Amaresh + all Sarlahi-4 candidates
+  const { gagan, amaresh, sarlahi4Candidates } = useMemo(() => {
+    let gagan = null;
+    let amaresh = null;
+    const sarlahi4 = [];
 
     for (const c of candidates) {
       const dist = (c.DistrictName || "").replace(/[\n\r]+/g, " ").trim();
-      const constId = c.SCConstID;
+      const constId = String(c.SCConstID);
 
-      if (c.CandidateID === BALEN_ID) balen = c;
-      if (c.CandidateID === KP_OLI_ID) kpOli = c;
+      if (c.CandidateID === GAGAN_ID) gagan = c;
+      if (c.CandidateID === AMARESH_ID) amaresh = c;
 
-      if (dist === JHAPA_5_DISTRICT && constId === JHAPA_5_CONST) {
-        jhapa5.push(c);
+      if (dist === SARLAHI_DISTRICT && constId === SARLAHI_CONST) {
+        sarlahi4.push(c);
       }
     }
 
-    // Sort: Balen first, then KP Oli, then rest by votes descending
-    jhapa5.sort((a, b) => {
-      // Pin Balen Shah at top
-      if (a.CandidateID === BALEN_ID) return -1;
-      if (b.CandidateID === BALEN_ID) return 1;
-      // Pin KP Oli second
-      if (a.CandidateID === KP_OLI_ID) return -1;
-      if (b.CandidateID === KP_OLI_ID) return 1;
-      // Rest by votes descending
+    // Sort: Gagan first, then Amaresh, then rest by votes descending
+    sarlahi4.sort((a, b) => {
+      if (a.CandidateID === GAGAN_ID) return -1;
+      if (b.CandidateID === GAGAN_ID) return 1;
+      if (a.CandidateID === AMARESH_ID) return -1;
+      if (b.CandidateID === AMARESH_ID) return 1;
       return (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0);
     });
 
-    return { balen, kpOli, jhapa5Candidates: jhapa5 };
+    return { gagan, amaresh, sarlahi4Candidates: sarlahi4 };
   }, [candidates]);
 
-  const balenVotes = balen ? Number(balen.TotalVoteReceived) || 0 : 0;
-  const oliVotes = kpOli ? Number(kpOli.TotalVoteReceived) || 0 : 0;
-  const totalVotes = balenVotes + oliVotes;
-  const balenPct = totalVotes > 0 ? ((balenVotes / totalVotes) * 100).toFixed(1) : 50;
-  const oliPct = totalVotes > 0 ? ((oliVotes / totalVotes) * 100).toFixed(1) : 50;
-  const diff = Math.abs(balenVotes - oliVotes);
-  const leader = balenVotes > oliVotes ? "balen" : oliVotes > balenVotes ? "oli" : null;
+  const gaganVotes = gagan ? Number(gagan.TotalVoteReceived) || 0 : 0;
+  const amareshVotes = amaresh ? Number(amaresh.TotalVoteReceived) || 0 : 0;
+  const totalVotes = gaganVotes + amareshVotes;
+  const gaganPct = totalVotes > 0 ? ((gaganVotes / totalVotes) * 100).toFixed(1) : 50;
+  const amareshPct = totalVotes > 0 ? ((amareshVotes / totalVotes) * 100).toFixed(1) : 50;
+  const diff = Math.abs(gaganVotes - amareshVotes);
+  const leader = gaganVotes > amareshVotes ? "gagan" : amareshVotes > gaganVotes ? "amaresh" : null;
 
   if (error) {
     return (
@@ -231,8 +239,8 @@ export default function VSPage() {
           <Link href="/" className="vs-back-link">{t.backToResults}</Link>
           <div className="vs-header-center">
             <span className="vs-trending-badge">{t.trending}</span>
-            <h1 className="vs-page-title">{t.vsTitle}</h1>
-            <p className="vs-page-subtitle">{t.vsSubtitle}</p>
+            <h1 className="vs-page-title">{vs.vsTitle}</h1>
+            <p className="vs-page-subtitle">{vs.vsSubtitle}</p>
           </div>
           <div className="vs-header-right">
             <button className="lang-toggle" onClick={toggleLang}>
@@ -255,10 +263,10 @@ export default function VSPage() {
             {/* VS Battle Section */}
             <section className="vs-battle">
               <CandidateCard
-                candidate={balen}
-                profile={PROFILES[BALEN_ID]}
+                candidate={gagan}
+                profile={PROFILES[GAGAN_ID]}
                 lang={lang}
-                isLeading={leader === "balen"}
+                isLeading={leader === "gagan"}
                 t={t}
               />
 
@@ -277,10 +285,10 @@ export default function VSPage() {
               </div>
 
               <CandidateCard
-                candidate={kpOli}
-                profile={PROFILES[KP_OLI_ID]}
+                candidate={amaresh}
+                profile={PROFILES[AMARESH_ID]}
                 lang={lang}
-                isLeading={leader === "oli"}
+                isLeading={leader === "amaresh"}
                 t={t}
               />
             </section>
@@ -292,28 +300,28 @@ export default function VSPage() {
                   <div
                     className="vs-vote-fill vs-vote-fill-left"
                     style={{
-                      width: `${balenPct}%`,
-                      background: PROFILES[BALEN_ID].bgGradient,
+                      width: `${gaganPct}%`,
+                      background: PROFILES[GAGAN_ID].bgGradient,
                     }}
                   >
-                    <span>{formatNumber(balenVotes)} ({balenPct}%)</span>
+                    <span>{formatNumber(gaganVotes)} ({gaganPct}%)</span>
                   </div>
                   <div
                     className="vs-vote-fill vs-vote-fill-right"
                     style={{
-                      width: `${oliPct}%`,
-                      background: PROFILES[KP_OLI_ID].bgGradient,
+                      width: `${amareshPct}%`,
+                      background: PROFILES[AMARESH_ID].bgGradient,
                     }}
                   >
-                    <span>{formatNumber(oliVotes)} ({oliPct}%)</span>
+                    <span>{formatNumber(amareshVotes)} ({amareshPct}%)</span>
                   </div>
                 </div>
               </section>
             )}
 
-            {/* All Jhapa-5 Candidates */}
+            {/* All Sarlahi-4 Candidates */}
             <section className="vs-all-candidates">
-              <h2 className="section-title">{t.allCandidates}</h2>
+              <h2 className="section-title">{vs.allCandidates}</h2>
 
               {/* Desktop Table */}
               <div className="vs-table-wrapper vs-desktop-only">
@@ -324,15 +332,14 @@ export default function VSPage() {
                       <th>{t.candidate}</th>
                       <th>{t.partyLabel}</th>
                       <th>{t.symbol}</th>
-                      <th>{t.age}</th>
                       <th>{t.votesCol}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {jhapa5Candidates.map((c, idx) => {
+                    {sarlahi4Candidates.map((c, idx) => {
                       const name = sanitizeName(c.CandidateName);
                       const party = sanitizeName(c.PoliticalPartyName);
-                      const isFeatured = c.CandidateID === BALEN_ID || c.CandidateID === KP_OLI_ID;
+                      const isFeatured = c.CandidateID === GAGAN_ID || c.CandidateID === AMARESH_ID;
                       const pColor = getPartyColor(party);
                       return (
                         <tr
@@ -362,7 +369,6 @@ export default function VSPage() {
                           <td className="vs-symbol-cell">
                             {translateSymbolName(c.SymbolName, lang) || "—"}
                           </td>
-                          <td>{c.AGE_YR}</td>
                           <td className="vs-votes-cell">
                             {formatNumber(c.TotalVoteReceived || 0)}
                           </td>
@@ -375,10 +381,10 @@ export default function VSPage() {
 
               {/* Mobile Cards */}
               <div className="vs-mobile-cards">
-                {jhapa5Candidates.map((c, idx) => {
+                {sarlahi4Candidates.map((c, idx) => {
                   const name = sanitizeName(c.CandidateName);
                   const party = sanitizeName(c.PoliticalPartyName);
-                  const isFeatured = c.CandidateID === BALEN_ID || c.CandidateID === KP_OLI_ID;
+                  const isFeatured = c.CandidateID === GAGAN_ID || c.CandidateID === AMARESH_ID;
                   const pColor = getPartyColor(party);
                   return (
                     <div
@@ -396,7 +402,6 @@ export default function VSPage() {
                             {translateCandidate(name, lang)}
                             {isFeatured && <span className="vs-star">⭐</span>}
                           </span>
-                          <span className="vs-mobile-age">{t.age}: {c.AGE_YR}</span>
                         </div>
                         <span className="vs-mobile-votes" style={{ color: pColor }}>
                           {formatNumber(c.TotalVoteReceived || 0)}

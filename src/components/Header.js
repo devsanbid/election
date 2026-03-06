@@ -47,6 +47,12 @@ export default function Header({ timestamp, isLoading }) {
             <Link href="/vs" className="vs-nav-link">
               🔥 {lang === "ne" ? "बालेन vs ओली" : "Balen vs Oli"}
             </Link>
+            <Link href="/vs/gagan-vs-amaresh" className="vs-nav-link">
+              🔥 {lang === "ne" ? "गगन vs अमरेश" : "Gagan vs Amaresh"}
+            </Link>
+            <Link href="/vs/mahendra-vs-harsh" className="vs-nav-link">
+              🔥 {lang === "ne" ? "महेन्द्र vs हर्ष" : "Mahendra vs Harsh"}
+            </Link>
             <button className="lang-toggle" onClick={toggleLang} title={lang === "ne" ? "Switch to English" : "नेपालीमा हेर्नुहोस्"}>
               <span className="lang-icon">🌐</span>
               <span className="lang-text">{t.language}</span>
