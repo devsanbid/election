@@ -338,10 +338,28 @@ a:hover {
   flex-shrink: 0;
 }
 
-.header-actions {
+.header-controls {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+}
+
+/* VS matchup links — horizontal scrollable strip */
+.vs-nav-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 6px var(--space-lg);
+  border-top: 1px solid var(--border-light);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.vs-nav-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .vs-nav-link {
@@ -1365,6 +1383,21 @@ details[open] .party-grid {
     width: 100%;
   }
 
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .vs-nav-strip {
+    padding: 6px var(--space-md);
+    gap: 6px;
+  }
+
+  .vs-nav-link {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+
   .update-info {
     font-size: 0.72rem;
   }
@@ -2241,8 +2274,12 @@ details[open] .party-grid {
   border-top: 1px solid var(--border-light);
 }
 
-/* Responsive */
+/* Responsive — VS page tablet */
 @media (max-width: 768px) {
+  .vs-main {
+    padding: var(--space-md) var(--space-sm);
+  }
+
   .vs-battle {
     grid-template-columns: 1fr;
     gap: var(--space-md);
@@ -2252,12 +2289,17 @@ details[open] .party-grid {
     flex-direction: row;
     min-width: unset;
     padding: var(--space-sm) 0;
+    order: -1;
   }
 
   .vs-badge {
     width: 50px;
     height: 50px;
     font-size: 1.1rem;
+  }
+
+  .vs-header {
+    padding: var(--space-sm) var(--space-md);
   }
 
   .vs-header-inner {
@@ -2267,24 +2309,76 @@ details[open] .party-grid {
 
   .vs-back-link {
     align-self: flex-start;
+    font-size: 0.8rem;
+    padding: 5px 10px;
   }
 
   .vs-header-right {
     position: absolute;
-    top: var(--space-md);
-    right: var(--space-lg);
+    top: var(--space-sm);
+    right: var(--space-md);
   }
 
   .vs-card {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
 
   .vs-card-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    word-break: break-word;
+  }
+
+  .vs-card-title {
+    font-size: 0.75rem;
   }
 
   .vs-page-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    word-break: break-word;
+  }
+
+  .vs-page-subtitle {
+    font-size: 0.72rem;
+  }
+
+  .vs-card-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .vs-symbol-img img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .vs-vote-bar {
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .vs-vote-fill span {
+    font-size: 0.7rem;
+  }
+
+  .vs-stat-label {
+    font-size: 0.72rem;
+  }
+
+  .vs-stat-value {
+    font-size: 0.78rem;
+    word-break: break-word;
+  }
+
+  .vs-vote-count {
+    font-size: 1rem !important;
+  }
+
+  .vs-diff {
+    font-size: 0.72rem;
+  }
+
+  .vs-diff strong {
+    font-size: 0.95rem;
   }
 
   /* Hide desktop table, show mobile cards */
@@ -2296,5 +2390,69 @@ details[open] .party-grid {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
+  }
+}
+
+/* Responsive — VS page small phone */
+@media (max-width: 480px) {
+  .vs-main {
+    padding: var(--space-sm);
+  }
+
+  .vs-card {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .vs-card-name {
+    font-size: 0.95rem;
+  }
+
+  .vs-card-avatar {
+    width: 68px;
+    height: 68px;
+  }
+
+  .vs-badge {
+    width: 42px;
+    height: 42px;
+    font-size: 0.9rem;
+  }
+
+  .vs-leading-badge {
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    top: 8px;
+    right: 8px;
+  }
+
+  .vs-page-title {
+    font-size: 0.9rem;
+  }
+
+  .vs-vote-bar {
+    height: 30px;
+    border-radius: 15px;
+  }
+
+  .vs-vote-fill span {
+    font-size: 0.6rem;
+    padding: 0 4px;
+  }
+
+  .vs-symbol-img img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .vs-mobile-card-top {
+    gap: var(--space-xs);
+  }
+
+  .vs-mobile-cand {
+    font-size: 0.82rem;
+  }
+
+  .vs-mobile-votes {
+    font-size: 0.82rem;
   }
 }
